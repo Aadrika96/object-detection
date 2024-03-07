@@ -7,6 +7,8 @@ from Synth import Synth
 synth_room_id = "65c79dbd9863ec99529bd7c0"
 synth_key = "mr_8884f292683f3f9ad57b66c092d560568a7d39d46cadac293e2f450e893a3fa3"
 
+#test
+
 def main():
     i=0
     obj_detect = edgeiq.ObjectDetection("alwaysai/mobilenet_ssd")
