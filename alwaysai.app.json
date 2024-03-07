@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "start": "sudo apt update && sudo apt install ffmpeg && python app.py"
+    "start": "sudo apt update && sudo apt install ffmpeg && python app2.py"
   },
   "models": {
-    "alwaysai/mobilenet_ssd": 5
+    "alwaysai/mobilenet_ssd": 5,
+    "alwaysai/ssd_mobilenet_v1_coco_2018_01_28": 9
   }
 }

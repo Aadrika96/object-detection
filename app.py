@@ -7,8 +7,6 @@ from Synth import Synth
 synth_room_id = "65c506a6b6bca40b8106cc32"
 synth_key = "mr_8884f292683f3f9ad57b66c092d560568a7d39d46cadac293e2f450e893a3fa3"
 
-#test
-
 def main():
     i=0
     obj_detect = edgeiq.ObjectDetection("alwaysai/mobilenet_ssd")
@@ -24,8 +22,7 @@ def main():
     synth = Synth(cap, synth_room_id, synth_key)
 
     try:
-        with cap as video_stream, \
-                edgeiq.Streamer() as streamer:
+        with cap as video_stream:
             # Allow Webcam to warm up
             time.sleep(2.0)
             fps.start()
@@ -33,6 +30,7 @@ def main():
             person_count = 0  # Initialize count outside the loop
             while True:
                 frame = video_stream.read()
+
                 results = obj_detect.detect_objects(frame, confidence_level=.5)
                 frame = edgeiq.markup_image(frame, results.predictions, colors=obj_detect.colors)
 
@@ -45,8 +43,10 @@ def main():
                     if prediction.label == 'person':
                         person_count += 1  # Increment count if "person" detected
                     text.append("{}: {:2.2f}%".format(prediction.label, prediction.confidence * 100))
-
+                
                 try:
+                    #print("approx. FPS: {:.2f}".format(fps.compute_fps()))
+                    streamer.send_data(frame)
                     synth.publish_frame(frame)
                 except Exception as e:
                     print(f"Error in publishing : {e}")
@@ -68,9 +68,6 @@ def main():
 
                 fps.update()
                 # time.sleep(3)
-
-                if streamer.check_exit():
-                    break
 
     finally:
         fps.stop()
