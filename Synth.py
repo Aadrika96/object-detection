@@ -2,7 +2,8 @@ import subprocess
 import requests
 import time
 
-BASE_URL = "172.16.3.76"
+#BASE_URL = "172.16.3.76"
+BASE_URL= "192.168.1.4"
 
 class Synth:
     def __init__(self, cameraFeed, roomId, apiKey):
@@ -31,22 +32,28 @@ class Synth:
            '-f', 'flv',
            self.rtmp_url]
         
-        self.stream_pipe = subprocess.Popen(self.command, stdin=subprocess.PIPE)
+        self.stream_pipe = subprocess.Popen(self.command, stdin=subprocess.PIPE) 
     
     def publish_frame(self, frame):
-        if self.stream_pipe:
-            self.stream_pipe.stdin.write(frame.tobytes())
+        try:
+            if self.stream_pipe and frame is not None:
+                self.stream_pipe.stdin.write(frame.tobytes())
+        except BrokenPipeError:
+            print("Broken pipe encountered. Attempting to reconnect...")
+            self.reconnect()
 
     def close(self):
         if self.stream_pipe:
             self.stream_pipe.stdin.close()
+            self.stream_pipe.wait()
     
     def is_connected(self):
         return self.stream_pipe.poll() is None if self.stream_pipe else False
 
     def reconnect(self):
         self.close()
-        self.init_stream()
+        self.stream_pipe = subprocess.Popen(self.command, stdin=subprocess.PIPE, shell=True) 
+        #self.init_stream()
 
     def wait_until_connected(self, timeout=30):
         start_time = time.time()
@@ -58,6 +65,6 @@ class Synth:
     def publish_data(self, property, value):
         try:
             response = requests.get(f"{self.api_url}&name={property}&value={value}")
-            print(response.json()["message"])
+            # print(response.json()["message"])
         except Exception as e:
             print(f"Error publishing data to server: {e}")

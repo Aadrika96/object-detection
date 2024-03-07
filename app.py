@@ -4,7 +4,7 @@ import requests
 import time
 from Synth import Synth
 
-synth_room_id = "65c79dbd9863ec99529bd7c0"
+synth_room_id = "65c506a6b6bca40b8106cc32"
 synth_key = "mr_8884f292683f3f9ad57b66c092d560568a7d39d46cadac293e2f450e893a3fa3"
 
 #test
@@ -30,54 +30,55 @@ def main():
             time.sleep(2.0)
             fps.start()
 
-            # loop detection
+            person_count = 0  # Initialize count outside the loop
             while True:
                 frame = video_stream.read()
                 results = obj_detect.detect_objects(frame, confidence_level=.5)
-                frame = edgeiq.markup_image(
-                        frame, results.predictions, colors=obj_detect.colors)
+                frame = edgeiq.markup_image(frame, results.predictions, colors=obj_detect.colors)
 
                 # Generate text to display on streamer
                 text = ["Model: {}".format(obj_detect.model_id)]
-                text.append(
-                        "Inference time: {:1.3f} s".format(results.duration))
+                text.append("Inference time: {:1.3f} s".format(results.duration))
                 text.append("Objects:")
 
                 for prediction in results.predictions:
                     if prediction.label == 'person':
-                        i = i+1
-                    text.append("{}: {:2.2f}%".format(
-                        prediction.label, prediction.confidence * 100))
+                        person_count += 1  # Increment count if "person" detected
+                    text.append("{}: {:2.2f}%".format(prediction.label, prediction.confidence * 100))
 
-                streamer.send_data(frame, text)
                 try:
                     synth.publish_frame(frame)
                 except Exception as e:
                     print(f"Error in publishing : {e}")
 
-                print(i)
-                y = str(i)
-                # api_url= 'https://api.thingspeak.com/update?api_key=ZERGKYOT2LEJ1QOK&field1='
-                # api_url = api_url+y
-                # response=requests.get(api_url)
-                synth.publish_data("occupants", y)
+                if not synth.is_connected():
+                    print("Connection to RTMP server lost. Reattempting connection...")
+                    try:
+                        time.sleep(10)
+                        synth.reconnect()
+                        print("Reconnection successful.")
+                    except Exception as e:
+                        print(f"Reconnection failed: {e}")
 
-                # if response.status_code== 200:
-                #     print('Data Sent...')
-                i=0
-                time.sleep(16)
+                # Publish person count every few frames or as needed
+                if person_count > 0:  # Publish count only if there are detected persons
+                    # print(f"Number of persons detected: {person_count}")
+                    synth.publish_data("occupants", str(person_count))
+                    person_count = 0  # Reset count after publishing
+
                 fps.update()
-            
+                # time.sleep(3)
+
                 if streamer.check_exit():
                     break
 
     finally:
         fps.stop()
         synth.close()
-        print("elapsed time: {:.2f}".format(fps.get_elapsed_seconds()))
-        print("approx. FPS: {:.2f}".format(fps.compute_fps()))
+        # print("elapsed time: {:.2f}".format(fps.get_elapsed_seconds()))
+        # print("approx. FPS: {:.2f}".format(fps.compute_fps()))
 
-        print("Program Ending")
+        # print("Program Ending")
 
 
 if __name__ == "__main__":
