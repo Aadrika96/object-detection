@@ -3,7 +3,7 @@ from edgeiq import ObjectDetection, Engine, markup_image
 from Synth import Synth
 from cv2 import VideoCapture
 
-synth_room_id = "65c506a6b6bca40b8106cc32"
+synth_room_id = "65d86696c0076e9e522d2882"
 synth_key = "mr_8884f292683f3f9ad57b66c092d560568a7d39d46cadac293e2f450e893a3fa3"
 
 person_count = 0  # Initialize count outside the loop

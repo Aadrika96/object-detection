@@ -3,8 +3,8 @@ import requests
 import time
 import cv2
 
-#BASE_URL = "172.16.3.76"
-BASE_URL= "192.168.1.4"
+BASE_URL = "172.16.17.94"
+#BASE_URL= "192.168.1.4"
 
 class Synth:
     def __init__(self, cameraFeed, roomId, apiKey):
